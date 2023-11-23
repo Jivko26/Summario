@@ -27,7 +27,7 @@ public class SummarizerController : Controller
         return Ok(summaries);
     }
 
-    [HttpGet]
+    [HttpGet("SearchFile")]
     public async Task<IActionResult> SearchFile(string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
