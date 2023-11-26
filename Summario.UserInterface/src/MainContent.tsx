@@ -1,5 +1,8 @@
 // src/components/MainContent.js
 import React, { useState } from 'react';
+import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
+import { FileUpload } from 'primereact/fileupload';
 import './styles.css';
 
 
@@ -9,10 +12,10 @@ const MainContent = () => {
     const [searchResult, setSearchResult] = useState('');
 
     const searchFile = async () => {
-        if (!fileName.trim()) {
-            alert('Please enter a file name.');
-            return;
-        }
+        // if (!fileName.trim()) {
+        //     alert('Please enter a file name.');
+        //     return;
+        // }
 
         try {
             const response = await fetch(`https://localhost:7095/api/Summarizer/SearchFile?fileName=${encodeURIComponent(fileName)}`, {
@@ -41,22 +44,25 @@ const MainContent = () => {
     return (
         <main>
             <div className="input-container">
-                <input type="file" id="fileInput" accept=".pdf, .docx" />
-                <button id="uploadButton">Upload Document</button>
+                <FileUpload mode="basic" name="demo[]" accept=".pdf,.docx" maxFileSize={10000000} />
             </div>
             <div className="search-container">
-                <input
-                    type="text"
+                <InputText
                     id="searchInput"
                     placeholder="Search for papers"
                     value={fileName}
                     onChange={(e) => setFileName(e.target.value)}
                 />
-                <button id="searchButton" onClick={searchFile}>Search {searchResult ? searchResult : "Click to search"}</button>
+                <Button
+                    id="searchButton"
+                    label="Search"
+                    icon="pi pi-search"
+                    onClick={searchFile}
+                />
             </div>
-            <button id="historyButton">View History</button>
-            <button id="translateButton">Translate Document</button>
-            <button id="summarizeButton">Summarize Document</button>
+            <Button id="historyButton" label="View History" icon="pi pi-clock" />
+            <Button id="translateButton" label="Translate Document" icon="pi pi-globe" />
+            <Button id="summarizeButton" label="Summarize Document" icon="pi pi-list" />
         </main>
     );
 };
