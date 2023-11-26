@@ -15,16 +15,25 @@ public class SummarizerController : Controller
         _pdfService = pdfService;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> UploadPdf(IFormFile file)
+    [HttpPost("SummarizeArtilce")]
+    public async Task<IActionResult> SummarizeArtilce(IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("Upload a file.");
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Upload a file.");
 
-        string text = await this._pdfService.ExtractTextFromPdfAsync(file);
-        var summaries = await this._summarizerService.SummarizeAsync(text);
+            string text = await this._pdfService.ExtractTextFromPdfAsync(file);
+            var summaries = await this._summarizerService.SummarizeAsync(text);
 
-        return Ok(summaries);
+            return Ok(summaries);
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync(ex.Message);
+            throw;
+        }
+        
     }
 
     [HttpGet("SearchFile")]

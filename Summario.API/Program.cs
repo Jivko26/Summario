@@ -12,7 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient<IGptSummarizerService, GptSummarizerService>(client =>
 {
     client.BaseAddress = new Uri("https://api.openai.com/v1/");
-    client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_API_KEY");
+    client.DefaultRequestHeaders.Add("Authorization", "Bearer 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");
 });
 builder.Services.Configure<FormOptions>(options =>
 {
