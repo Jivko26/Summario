@@ -81,3 +81,10 @@ footer {
   z-index: 1000;
   /* Ensure it's above other content */
 }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+}

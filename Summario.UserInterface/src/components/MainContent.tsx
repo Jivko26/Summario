@@ -4,10 +4,11 @@ import { Button } from 'primereact/button';
 import { FileUpload } from 'primereact/fileupload';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Fieldset } from 'primereact/fieldset';
-
-import '../styles.css';
 import { InputText } from 'primereact/inputtext';
 
+import '../styles.css';
+import SearchResults from './SearchResult';
+import { Paginator } from 'primereact/paginator';
 
 const MainContent = () => {
     const [isMainVisible, setIsMainVisible] = useState<boolean>(false);
@@ -17,7 +18,18 @@ const MainContent = () => {
     const [summaries, setSummaries] = useState<string>("");
     const [summariesArray, setsummariesArray] = useState<string>("");
     const [translation, setTranslation] = useState<any>();
+    const [results, setResults] = useState([]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const resultsPerPage = 5;
 
+    // Function to change page
+    const onPaginate = (event: any) => {
+        setCurrentPage(event.page);
+    }
+
+    const indexOfFirstResult = currentPage * resultsPerPage;
+    const indexOfLastResult = indexOfFirstResult + resultsPerPage;
+    const currentResults = results.slice(indexOfFirstResult, indexOfLastResult);
 
     const onUpload = (e: any) => {
         console.log(e.files);
@@ -36,6 +48,7 @@ const MainContent = () => {
 
     const clear = async () => {
         setIsLoading(true);
+        setResults([]);
         setSearchQuery("");
         setIsLoading(false);
     };
@@ -47,26 +60,27 @@ const MainContent = () => {
 
         try {
             //Prod
-            // const response = await fetch(`http://87.215.96.234:80/api/Summarizer/SearchFile?fileName=${encodeURIComponent(fileName)}`, {
-            //     method: 'GET',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     }
-            // });
+            const response = await fetch(`http://87.215.96.234:80/api/Summarizer/SearchFile?fileName=${encodeURIComponent(searchQuery)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-            const response = await fetch(`https://localhost:7095/api/search?query=${encodeURIComponent(searchQuery)}`);
+            // const response = await fetch(`https://localhost:7095/api/search?query=${encodeURIComponent(searchQuery)}`);
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok.');
-            }
+            // if (!response.ok) {
+            //     throw new Error('Network response was not ok.');
+            // }
 
             console.log("Response", response);
 
 
-            const result = response.json();
+            const result = await response.json();
             console.log("Result", result);
-            alert(`Search result is: ${result}`);
+
             setIsMainVisible(false);
+            setResults(result.webPages.value);
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
         }
@@ -87,16 +101,16 @@ const MainContent = () => {
         formData.append('file', uploadedFile);
 
         try {
-            const response = await fetch('https://localhost:7095/api/Summarizer/SummarizeArtilce', {
-                method: 'POST',
-                body: formData
-            });
-
-            //Prod
-            // const response = await fetch('http://87.215.96.234:80/api/Summarizer/SummarizeArtilce', {
+            // const response = await fetch('https://localhost:7095/api/Summarizer/SummarizeArtilce', {
             //     method: 'POST',
             //     body: formData
             // });
+
+            //Prod
+            const response = await fetch('http://87.215.96.234:80/api/Summarizer/SummarizeArtilce', {
+                method: 'POST',
+                body: formData
+            });
 
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
@@ -121,13 +135,10 @@ const MainContent = () => {
 
 
         try {
-            const response = await fetch(`https://localhost:7095/api/translation?summary=${encodeURIComponent(summariesArray)}`);
+            //const response = await fetch(`https://localhost:7095/api/translation?summary=${encodeURIComponent(summariesArray)}`);
 
             //Prod
-            // const response = await fetch('http://87.215.96.234:80/api/Summarizer/SummarizeArtilce', {
-            //     method: 'POST',
-            //     body: formData
-            // });
+            const response = await fetch(`http://87.215.96.234:80/api/translation?summary=${encodeURIComponent(summariesArray)}`);
 
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
@@ -269,6 +280,17 @@ const MainContent = () => {
                             </Fieldset>
                         }
                     </div>
+                </>
+            }
+            {results &&
+                <>
+                    <SearchResults results={currentResults} />
+                    <Paginator
+                        first={currentPage * resultsPerPage}
+                        rows={resultsPerPage}
+                        totalRecords={results.length}
+                        onPageChange={onPaginate}
+                    />
                 </>
             }
         </main>
