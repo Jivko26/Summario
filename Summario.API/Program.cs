@@ -29,6 +29,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddTransient<IGptSummarizerService, GptSummarizerService>();
 builder.Services.AddTransient<IPdfService, PdfService>();
+builder.Services.AddTransient<ISearchService, SearchService>();
+builder.Services.AddTransient<ITranslationService, TranslationService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
