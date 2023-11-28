@@ -10,7 +10,7 @@ namespace Summario.Services.Implementations
     {
         public async Task<string> ExtractTextFromPdfAsync(IFormFile file)
         {
-            var dataFolderPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"Data/{file.FileName}");
+            var dataFolderPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"Data");
 
             // Create the Data folder if it doesn't exist
             if (!Directory.Exists(dataFolderPath))
