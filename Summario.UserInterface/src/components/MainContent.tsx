@@ -16,8 +16,8 @@ const MainContent = () => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [summaries, setSummaries] = useState<string>("");
-    const [summariesArray, setsummariesArray] = useState<string>("");
-    const [translation, setTranslation] = useState<any>();
+    const [summariesArray, setsummariesArray] = useState<string[]>([]);
+    const [translation, setTranslation] = useState<string[]>();
     const [results, setResults] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const resultsPerPage = 5;
@@ -33,7 +33,16 @@ const MainContent = () => {
 
     const onUpload = (e: any) => {
         console.log(e.files);
+        e.files.forEach((file: any) => {
+            file.status = 'completed';
+        });
         setUploadedFile(e.files[0]);
+    };
+
+    const handleKeyPress = (event: any) => {
+        if (event.key === 'Enter') {
+            searchFile();
+        }
     };
 
     const copyToClipboard = async () => {
@@ -59,19 +68,19 @@ const MainContent = () => {
         setIsLoading(true);
 
         try {
-            //Prod
-            const response = await fetch(`http://87.215.96.234:80/api/Summarizer/SearchFile?fileName=${encodeURIComponent(searchQuery)}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            // //Prod
+            // const response = await fetch(`http://87.215.96.234:80/api/Summarizer/SearchFile?fileName=${encodeURIComponent(searchQuery)}`, {
+            //     method: 'GET',
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //     }
+            // });
 
-            // const response = await fetch(`https://localhost:7095/api/search?query=${encodeURIComponent(searchQuery)}`);
+            const response = await fetch(`https://localhost:7095/api/search?query=${encodeURIComponent(searchQuery)}`);
 
-            // if (!response.ok) {
-            //     throw new Error('Network response was not ok.');
-            // }
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
 
             console.log("Response", response);
 
@@ -101,16 +110,16 @@ const MainContent = () => {
         formData.append('file', uploadedFile);
 
         try {
-            // const response = await fetch('https://localhost:7095/api/Summarizer/SummarizeArtilce', {
-            //     method: 'POST',
-            //     body: formData
-            // });
-
-            //Prod
-            const response = await fetch('http://87.215.96.234:80/api/Summarizer/SummarizeArtilce', {
+            const response = await fetch('https://localhost:7095/api/Summarizer/SummarizeArtilce', {
                 method: 'POST',
                 body: formData
             });
+
+            // //Prod
+            // const response = await fetch('http://87.215.96.234:80/api/Summarizer/SummarizeArtilce', {
+            //     method: 'POST',
+            //     body: formData
+            // });
 
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
@@ -130,23 +139,23 @@ const MainContent = () => {
         setIsLoading(false);
     };
 
-    const translateSummary = async () => {
+    const translateSummary = async (summary: string) => {
         setIsLoading(true);
 
-
         try {
-            //const response = await fetch(`https://localhost:7095/api/translation?summary=${encodeURIComponent(summariesArray)}`);
+            const response = await fetch(`https://localhost:7095/api/translation?summary=${encodeURIComponent(summary)}`);
 
             //Prod
-            const response = await fetch(`http://87.215.96.234:80/api/translation?summary=${encodeURIComponent(summariesArray)}`);
+            //const response = await fetch(`http://87.215.96.234:80/api/translation?summary=${encodeURIComponent(summariesArray)}`);
 
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
             }
 
-            const translation = await response.json();
-            console.log("Translation: ", translation);
-            setTranslation(translation);
+            const result = await response.json();
+            //console.log("Translation: ", translation);
+            let text = result[0].translations[0].text;
+            setTranslation([...text, translation]);
 
         } catch (error) {
             alert(`An error occured: ${error}`);
@@ -173,6 +182,7 @@ const MainContent = () => {
                         style={{
                             width: "700px",
                         }}
+                        onKeyPress={handleKeyPress}
                     />
                     <i
                         className="pi pi-times"
@@ -187,7 +197,7 @@ const MainContent = () => {
                     disabled={isLoading}
                     style={{
                         marginLeft: "10px",
-                        backgroundColor: "rgb(39, 12, 189)",
+                        backgroundColor: "#333",
                     }}
                 />
                 <Button
@@ -195,7 +205,7 @@ const MainContent = () => {
                     disabled={isLoading}
                     style={{
                         marginLeft: "10px",
-                        backgroundColor: "rgb(39, 12, 189)",
+                        backgroundColor: "#333",
                     }}
                     onClick={() => {
                         setIsMainVisible(true);
@@ -207,19 +217,18 @@ const MainContent = () => {
                     <div className="card">
                         <FileUpload
                             name="demo[]"
-                            multiple
+                            mode='advanced'
                             accept=".pdf,.docx"
-                            maxFileSize={1000000}
                             emptyTemplate={<p className="m-0">Drag and drop files here to upload.</p>}
                             customUpload={true}
                             onRemove={() => {
                                 setSummaries("");
-                                setTranslation("");
+                                setTranslation([]);
                             }}
                             onClear={() => {
                                 setIsMainVisible(false);
                                 setSummaries("");
-                                setTranslation("");
+                                setTranslation([]);
                             }}
                             uploadLabel='Summarize'
                             onSelect={onUpload}
@@ -242,7 +251,11 @@ const MainContent = () => {
                                     id="translateButton"
                                     label="Translate Summary"
                                     icon="pi pi-globe"
-                                    onClick={translateSummary}
+                                    onClick={() => {
+                                        summariesArray.forEach((summary) => {
+                                            translateSummary(summary);
+                                        })
+                                    }}
                                     style={{
                                         marginLeft: "10px",
                                         backgroundColor: "rgb(39, 12, 189)",
@@ -250,8 +263,6 @@ const MainContent = () => {
                                 <p className="m-0">
                                     {summaries}
                                 </p>
-                                <Button label="Copy to Clipboard" icon="pi pi-copy" className="p-button-secondary" onClick={copyToClipboard} />
-                                <Button id="translateButton" label="Translate Summary" icon="pi pi-globe" onClick={translateSummary} />
                             </Fieldset>
                         }
                         {translation &&
@@ -266,17 +277,8 @@ const MainContent = () => {
                                         backgroundColor: "rgb(39, 12, 189)",
                                     }} />
                                 <p className="m-0">
-                                    {translation[0].translations[0].text}
+                                    {translation}
                                 </p>
-                                <Button
-                                    label="Copy to Clipboard"
-                                    icon="pi pi-copy"
-                                    className="p-button-secondary"
-                                    onClick={copyToClipboard}
-                                    style={{
-                                        marginLeft: "10px",
-                                        backgroundColor: "rgb(39, 12, 189)",
-                                    }} />
                             </Fieldset>
                         }
                     </div>
@@ -285,12 +287,15 @@ const MainContent = () => {
             {results &&
                 <>
                     <SearchResults results={currentResults} />
-                    <Paginator
-                        first={currentPage * resultsPerPage}
-                        rows={resultsPerPage}
-                        totalRecords={results.length}
-                        onPageChange={onPaginate}
-                    />
+                    {results.length > 0 ?
+                        <Paginator
+                            first={currentPage * resultsPerPage}
+                            rows={resultsPerPage}
+                            totalRecords={results.length}
+                            onPageChange={onPaginate}
+                        /> :
+                        <></>
+                    }
                 </>
             }
         </main>
