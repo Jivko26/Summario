@@ -62,6 +62,32 @@ const MainContent = () => {
         setIsLoading(false);
     };
 
+    const handleTranslate = async () => {
+        setIsLoading(true);
+        let allTranslations = [];
+
+        for (const summary of summariesArray) {
+            const translatedText = await translateSummary(summary);
+            console.log("Partial Translate: ", translatedText);
+            allTranslations.push(translatedText);
+        }
+
+        console.log("Complete Translation: ", allTranslations);
+        setTranslation(allTranslations);
+
+        setIsLoading(false);
+    };
+
+    function customItemTemplate(file: any, props: any) {
+        // Return a custom JSX layout for each file item
+        // This layout doesn't have to include status indicators
+        return (
+            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+                <span style={{ marginLeft: '10px' }}>{file.name}</span>
+                {/* Other elements if needed */}
+            </div>
+        );
+    }
 
     const searchFile = async () => {
 
@@ -145,17 +171,13 @@ const MainContent = () => {
         try {
             const response = await fetch(`https://localhost:7095/api/translation?summary=${encodeURIComponent(summary)}`);
 
-            //Prod
-            //const response = await fetch(`http://87.215.96.234:80/api/translation?summary=${encodeURIComponent(summariesArray)}`);
-
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
             }
 
             const result = await response.json();
-            //console.log("Translation: ", translation);
             let text = result[0].translations[0].text;
-            setTranslation([...text, translation]);
+            return text;
 
         } catch (error) {
             alert(`An error occured: ${error}`);
@@ -233,6 +255,7 @@ const MainContent = () => {
                             uploadLabel='Summarize'
                             onSelect={onUpload}
                             uploadHandler={summarizeArticle}
+                            itemTemplate={customItemTemplate}
                         />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
@@ -251,11 +274,7 @@ const MainContent = () => {
                                     id="translateButton"
                                     label="Translate Summary"
                                     icon="pi pi-globe"
-                                    onClick={() => {
-                                        summariesArray.forEach((summary) => {
-                                            translateSummary(summary);
-                                        })
-                                    }}
+                                    onClick={handleTranslate}
                                     style={{
                                         marginLeft: "10px",
                                         backgroundColor: "rgb(39, 12, 189)",
@@ -265,7 +284,7 @@ const MainContent = () => {
                                 </p>
                             </Fieldset>
                         }
-                        {translation &&
+                        {translation && translation.length > 0 &&
                             <Fieldset legend="Translation" style={{ flex: '1', minWidth: '300px', margin: '10px' }}>
                                 <Button
                                     label="Copy to Clipboard"

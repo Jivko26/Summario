@@ -35,15 +35,4 @@ public class SummarizerController : Controller
         }
         
     }
-
-    [HttpGet("SearchFile")]
-    public async Task<IActionResult> SearchFile(string fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName))
-            return BadRequest("Upload a file.");
-
-        string result = await this._pdfService.FindFileInDataFolder(fileName);
-
-        return Ok(result);
-    }
 }

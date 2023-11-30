@@ -10,21 +10,6 @@ namespace Summario.Services.Implementations
     {
         public async Task<string> ExtractTextFromPdfAsync(IFormFile file)
         {
-            var dataFolderPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"Data");
-
-            // Create the Data folder if it doesn't exist
-            if (!Directory.Exists(dataFolderPath))
-            {
-                Directory.CreateDirectory(dataFolderPath);
-            }
-
-            var filePath = System.IO.Path.Combine(dataFolderPath, file.FileName);
-
-            // Save the file to the Data folder
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream);
-            }
 
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
@@ -39,31 +24,6 @@ namespace Summario.Services.Implementations
             }
 
             return text.ToString();
-        }
-
-        public async Task<string> FindFileInDataFolder(string fileName)
-        {
-            // Determine the path for the Data folder
-            var dataFolderPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Data");
-
-            // Check if the Data folder exists
-            if (!Directory.Exists(dataFolderPath))
-            {
-                return "Data folder does not exist.";
-            }
-
-            // Combine the file name with the Data folder path
-            var filePath = System.IO.Path.Combine(dataFolderPath, fileName);
-
-            // Check if the file exists
-            if (File.Exists(filePath))
-            {
-                return filePath; // Or return any other relevant information
-            }
-            else
-            {
-                return "File not found.";
-            }
         }
 
     }
